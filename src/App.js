@@ -1,8 +1,9 @@
 import React, {Component} from 'react';
 import Navbar from './components/Navbar';
 import MainPage from './components/MainPage';
-import {BrowserRouter, Switch, Route} from 'react-router-dom';
-import firebase from 'firebase';
+import {Switch, Route, Redirect} from 'react-router-dom';
+import firebase from 'firebase/app';
+import 'firebase/auth';
 import ProfilePage from "./components/ProfilePage";
 import {config} from "./firebase";
 
@@ -18,7 +19,7 @@ class App extends Component {
   uiConfig = {
     signInFlow: "popup",
     signInOptions: [firebase.auth.GithubAuthProvider.PROVIDER_ID],
-    // signInSuccessUrl: '/profile',
+    signInSuccessUrl: '/profile',
     
   };
   
@@ -33,15 +34,42 @@ class App extends Component {
   
   signOutHandler = () => {
     firebase.auth().signOut().then(response => {
-      this.setState({isSignedIn: false, displayName: null})
+      this.setState({isSignedIn: false, displayName: null});
+      this.props.history.push('/')
     }).catch(error => {
     
-    })
+    });
+    
   };
   
   render() {
+    let routes = null;
+    if (this.state.isSignedIn){
+      routes = (
+        <Switch>
+          <Route path='/' exact render={() => (<MainPage
+            uiConfig={this.uiConfig}
+            firebaseAuth={firebase.auth()}
+            isSignedIn={this.state.isSignedIn}
+          />)}/>
+          <Route path='/profile' render={() => <ProfilePage/>}/>
+          <Redirect to='/'/>
+        </Switch>
+      )
+    } else {
+      routes = (
+        <Switch>
+          <Route path='/' exact render={() => (<MainPage
+            uiConfig={this.uiConfig}
+            firebaseAuth={firebase.auth()}
+            isSignedIn={this.state.isSignedIn}
+          />)}/>
+          <Redirect to='/'/>
+        </Switch>
+      )
+    }
+    
     return (
-      <BrowserRouter>
         <React.Fragment>
           <Navbar
             signout={this.signOutHandler}
@@ -49,17 +77,9 @@ class App extends Component {
             photoURL={this.state.photoURL}
           />
           <div className="container">
-            <Switch>
-              <Route path='/' exact render={() => (<MainPage
-                uiConfig={this.uiConfig}
-                firebaseAuth={firebase.auth()}
-                isSignedIn={this.state.isSignedIn}
-              />)}/>
-              <Route path='/profile' render={() => <ProfilePage/>}/>
-            </Switch>
+            {routes}
           </div>
         </React.Fragment>
-      </BrowserRouter>
     );
   }
 }
