@@ -52,7 +52,10 @@ class App extends Component {
             firebaseAuth={firebase.auth()}
             isSignedIn={this.state.isSignedIn}
           />)}/>
-          <Route path='/profile' render={() => <ProfilePage/>}/>
+          <Route path='/profile' render={() => <ProfilePage
+            displayName={this.state.displayName}
+            photoURL={this.state.photoURL}
+          />}/>
           <Redirect to='/'/>
         </Switch>
       )
